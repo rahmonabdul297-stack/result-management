@@ -1,0 +1,11 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Development: open access for student results.
+    // Tighten these rules before production (require auth).
+    match /studentResults/{resultId} {
+      allow read, write: if true;
+    }
+  }
+}

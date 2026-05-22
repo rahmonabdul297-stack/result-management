@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "studentResults": {
+      ".read": true,
+      ".write": true
+    },
+    "classTeachers": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}
