@@ -31,9 +31,11 @@ const Generalheader = () => {
 
           <div className="hidden min-w-0 text-left sm:block">
             <p className="truncate text-sm font-semibold leading-tight text-white lg:text-base">
-           Ayodele Schools
+              Ayodele Schools
             </p>
-            <p className="truncate text-xs text-white/75">Result Management System</p>
+            <p className="truncate text-xs text-white/75">
+              Result Management System
+            </p>
           </div>
 
           <span className="hidden shrink-0 rounded-full bg-AppGreen px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white lg:inline-block">

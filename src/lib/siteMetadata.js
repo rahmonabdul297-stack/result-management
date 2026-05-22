@@ -1,6 +1,6 @@
 import { getClassConfig } from "./classConfig";
 
-export const SCHOOL_NAME = "School of Science and Technology";
+export const SCHOOL_NAME = "Ayodele Schools";
 export const SITE_NAME = "SST Result Management System";
 export const DEFAULT_DESCRIPTION =
   "Secure school result management for teachers and administrators — enter, view, and manage student result slips across JSS classes.";
@@ -8,7 +8,7 @@ export const DEFAULT_DESCRIPTION =
 function getSiteUrl() {
   const url = process.env.NEXT_PUBLIC_SITE_URL;
   if (url) return url.replace(/\/$/, "");
-  return "http://localhost:3000";
+  return "https://result-management-kappa.vercel.app/";
 }
 
 /** @param {string} path */

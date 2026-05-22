@@ -4,7 +4,7 @@ import { pageMetadata } from "@/lib/siteMetadata";
 export const metadata = pageMetadata({
   title: "Sign In",
   description:
-    "Sign in to the School of Science and Technology result management system as a teacher or administrator.",
+    "Sign in to the Ayodele Schools result management system as a teacher or administrator.",
   path: "/",
   keywords: ["login", "teacher login", "admin login"],
 });
