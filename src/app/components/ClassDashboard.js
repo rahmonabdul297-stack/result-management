@@ -50,7 +50,7 @@ export default function ClassDashboard({ classSlug }) {
           subtitle="Class overview — submissions, averages, and recent activity."
         />
 
-        <section className="grid grid-cols-3 lg:grid-cols-5 gap-4">
+        <section className="flex flex-col lg:grid grid-cols-5 gap-4">
           <div className="stat-card">
             <div className="stat-label">Your Class</div>
             <div className="stat-value">{config.label}</div>
