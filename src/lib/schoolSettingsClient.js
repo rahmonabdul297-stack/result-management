@@ -4,7 +4,7 @@ import { getDb, SCHOOL_SETTINGS_PATH } from "./firebase";
 export const DEFAULT_SCHOOL_SETTINGS = {
   schoolName: "AYODELE SCHOOLS",
   schoolAddress:
-    "6. Babatunde Awosanya Street, Jesu Walalaye Aiyegbami, Sagamu. Ogun State.",
+    "6. Babatunde Awosanya Street, Jesu Walalaye Aiyegbami, Sagamu. Ogun State. \n\n Km 3, Falilat Ogunkoya Avenue, Ode-Lemo Road, Sabo, Sagamu, Ogun State",
   schoolMotto: "Knowledge, Character, Excellence.",
   schoolEmail: "",
   schoolWebsite: "",

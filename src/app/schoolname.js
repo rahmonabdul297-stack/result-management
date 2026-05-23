@@ -6,7 +6,7 @@ import {
   fetchSchoolSettings,
 } from "@/lib/schoolSettingsClient";
 
-const Schoolname = ({ name, className = "font-[font-geist-sans] text-center text-AppGray" }) => {
+const Schoolname = ({ name, className = "font-[font-geist-sans] text-center" }) => {
   const [displayName, setDisplayName] = useState(
     name || DEFAULT_SCHOOL_SETTINGS.schoolName,
   );

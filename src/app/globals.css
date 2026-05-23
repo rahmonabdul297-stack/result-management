@@ -1903,6 +1903,7 @@ body.is-admin .sidebar-label {
 /* Student / parent result check portal */
 .result-check-page {
   min-height: 100vh;
+  margin: auto auto;
   background-image:linear-gradient(to bottom, #d7b357, #ede8dc) ;
   display: flex;
   flex-direction: column;

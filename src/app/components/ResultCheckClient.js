@@ -8,6 +8,8 @@ import {
   fetchSchoolSettings,
 } from "@/lib/schoolSettingsClient";
 import { toast } from "sonner";
+import Schoolname from "../schoolname";
+import Logo from "../logo";
 
 const SESSION_OPTIONS = ["2024/2025", "2025/2026", "2026/2027", "2027/2028"];
 
@@ -99,7 +101,15 @@ export default function ResultCheckClient() {
     <div className="result-check-page">
       <div className="result-check-card">
         <header className="result-check-header">
-          <h1>{schoolTitle || DEFAULT_SCHOOL_SETTINGS.schoolName}</h1>
+        <div className="flex flex-col items-center py-3">
+          <div className="h-24 w-[100px]">
+            <Logo />
+          </div>
+          <div className="text-black">
+            <Schoolname />
+          </div>
+          <div className="text-xs text-AppGray text-center">{DEFAULT_SCHOOL_SETTINGS.schoolAddress}</div>
+        </div>
           {school.schoolMotto ? (
             <p className="result-check-motto">
               <em>{school.schoolMotto}</em>

@@ -7,6 +7,7 @@ import Schoolname from "../schoolname";
 import Logo from "../logo";
 import { fetchAllClassTeachers } from "@/lib/classTeachersClient";
 import { toast } from "sonner";
+import { DEFAULT_SCHOOL_SETTINGS } from "@/lib/schoolSettingsClient";
 
 const LEGACY_TEACHERS = {
   TCH001: { pass: "CT12026", route: "/dashboard/classone" },
@@ -98,6 +99,7 @@ export default function AuthPageClient() {
           <div className="text-black">
             <Schoolname />
           </div>
+          <div className="text-xs text-AppGray text-center">{DEFAULT_SCHOOL_SETTINGS.schoolAddress}</div>
         </div>
         <div className="login-tabs">
           {logTyp.map((item) => (
