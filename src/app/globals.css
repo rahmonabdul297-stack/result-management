@@ -36,9 +36,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 .authBg {
-  background-image: linear-gradient(to bottom, rgb(3, 49, 3), rgb(76, 123, 76));
+  background-image: linear-gradient(to bottom, #d7b357, #ede8dc);
   @apply flex items-center justify-center py-20;
 }
+
 input {
   @apply border-AppGray border rounded-md px-2 scroll-py-12;
 }
@@ -199,6 +200,7 @@ body.is-admin .sidebar-label {
 .login-tabs {
   display: flex;
   gap: 4px;
+  justify-content: space-between;
   background: var(--surface);
   border-radius: 10px;
   padding: 4px;
@@ -252,7 +254,7 @@ body.is-admin .sidebar-label {
 .btn-primary {
   width: 100%;
   padding: 13px;
-  background: var(--green);
+  background:#d7b357;
   color: white;
   border: none;
   border-radius: 10px;
@@ -507,7 +509,10 @@ body.is-admin .sidebar-label {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--dark);
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
 }
 .admin-class-tab:hover {
   border-color: var(--admin-border);
@@ -550,7 +555,10 @@ body.is-admin .sidebar-label {
   background: white;
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
 }
 .admin-class-card:hover {
   border-color: var(--admin-border);
@@ -1830,14 +1838,14 @@ body.is-admin .sidebar-label {
     height: 297mm;
     margin: 0 !important;
     padding: 0 !important;
-    background: #fff !important;
+    /* background: #fff !important; */
   }
   .result-view-page,
   .result-check-page {
     padding: 0 !important;
     margin: 0 !important;
     min-height: 0 !important;
-    background: #fff !important;
+   background:#fff !important;
   }
   .result-slip-print-visible {
     display: block !important;
@@ -1895,7 +1903,7 @@ body.is-admin .sidebar-label {
 /* Student / parent result check portal */
 .result-check-page {
   min-height: 100vh;
-  background: #f0eeeb;
+  background-image:linear-gradient(to bottom, #d7b357, #ede8dc) ;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1969,7 +1977,7 @@ body.is-admin .sidebar-label {
   padding: 14px 16px;
   border: none;
   border-radius: 8px;
-  background: var(--school-maroon);
+  background: #d7b357;
   color: #fff;
   font-size: 0.95rem;
   font-weight: 600;
@@ -1979,7 +1987,7 @@ body.is-admin .sidebar-label {
   transition: background 0.2s;
 }
 .result-check-btn:hover:not(:disabled) {
-  background: var(--school-maroon-dark);
+  background: #c7bda3;
 }
 .result-check-btn:disabled {
   opacity: 0.7;
@@ -2629,4 +2637,3 @@ body.is-admin .sidebar-label {
     font-size: 16px;
   }
 }
-
