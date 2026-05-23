@@ -98,12 +98,11 @@ export default function AuthPageClient() {
           <div className="text-black">
             <Schoolname />
           </div>
-          <span className="text-sm text-AppGray">{"location"}</span>
         </div>
         <div className="login-tabs">
           {logTyp.map((item) => (
             <div
-              className={`bg-AppWhite text-AppBlack text-[13px] rounded-md px-6 w-[50%] py-2 ${seletTyp === item.id ? "bg-white" : ""} flex items-center justify-center gap-2 uppercase`}
+              className={`bg-AppWhite text-AppBlack text-[13px] rounded-md px-6 w-[45%] py-2 ${seletTyp === item.id ? "bg-white" : ""} flex items-center justify-center gap-2 uppercase`}
               key={item.id}
               onClick={() => setseletTyp(item.id)}
             >
