@@ -1,4 +1,5 @@
 import { ContextPageProvider } from "../context/page";
+import { SchoolClassesProvider } from "../context/SchoolClassesContext";
 import DashboardPathSync from "../components/DashboardPathSync";
 import Generalheader from "../Generalheader";
 import Navbar from "../navbar";
@@ -15,6 +16,7 @@ export const metadata = pageMetadata({
 export default function DashboardLayout({ children }) {
   return (
     <ContextPageProvider>
+      <SchoolClassesProvider>
       <DashboardPathSync />
       <div className="dashboard-layout min-h-screen">
         <Generalheader />
@@ -24,11 +26,12 @@ export default function DashboardLayout({ children }) {
             <Navbar />
           </aside>
 
-          <main className="dashboard-content w-full px-2 pb-10 pt-16 sm:px-4 lg:ml-52 lg:w-[80%] lg:px-6 lg:pt-[68px]">
+          <main className="dashboard-content w-full min-w-0 px-3 pb-10 pt-16 sm:px-4 lg:ml-[200px] lg:max-w-[calc(100%-200px)] lg:px-6 lg:pt-[68px]">
             {children}
           </main>
         </section>
       </div>
+      </SchoolClassesProvider>
     </ContextPageProvider>
   );
 }

@@ -7,6 +7,9 @@ import { useToogleContext } from "./context/page";
 
 function isNavActive(pathname, url) {
   if (url === "/admin") return pathname === "/admin";
+  if (url === "/checkResult") {
+    return pathname === "/checkResult" || pathname.startsWith("/checkResult/");
+  }
   return pathname === url || pathname.startsWith(`${url}/`);
 }
 

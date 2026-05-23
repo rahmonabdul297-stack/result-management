@@ -38,3 +38,7 @@ export function getDb() {
 
 export const RESULTS_PATH = "studentResults";
 export const CLASS_TEACHERS_PATH = "classTeachers";
+export const SCHOOL_SETTINGS_PATH = "schoolSettings";
+export const CLASS_STUDENTS_PATH = "classStudents";
+export const SCHOOL_CLASSES_PATH = "schoolClasses";
+export const CLASS_SUBJECTS_PATH = "classSubjects";

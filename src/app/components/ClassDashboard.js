@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { LuNotebookText } from "react-icons/lu";
 import { fetchStudentResults } from "@/lib/resultApiClient";
 import { getClassConfig } from "@/lib/classConfig";
@@ -17,7 +18,10 @@ export default function ClassDashboard({ classSlug }) {
     const load = async () => {
       try {
         setLoading(true);
-        const data = await fetchStudentResults({ classSlug });
+        const data = await fetchStudentResults({
+          classSlug,
+          excludeCumulative: true,
+        });
         setResults(data);
         setError("");
       } catch (err) {
@@ -43,12 +47,30 @@ export default function ClassDashboard({ classSlug }) {
   const below50 = results.filter((r) => (r.summary?.avg ?? 0) < 50).length;
 
   return (
-    <div className="overflow-y-auto w-full p-10">
+    <div className="page-content overflow-y-auto w-full">
       <section className="flex flex-col gap-10">
         <ClassTeacherWelcome
           classSlug={classSlug}
           subtitle="Class overview — submissions, averages, and recent activity."
         />
+
+        <section className="flex flex-wrap gap-3 mb-2">
+          <Link
+            href={`/dashboard/${classSlug}/resultdetails`}
+            className="btn btn-green btn-sm"
+          >
+            Enter term result
+          </Link>
+          <Link
+            href={`/dashboard/${classSlug}/cumulative`}
+            className="btn btn-outline btn-sm"
+          >
+            Cumulative / overall entry
+          </Link>
+          <Link href={`/dashboard/${classSlug}/results`} className="btn btn-outline btn-sm">
+            All results
+          </Link>
+        </section>
 
         <section className="flex flex-col lg:grid grid-cols-5 gap-4">
           <div className="stat-card">

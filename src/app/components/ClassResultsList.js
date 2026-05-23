@@ -2,13 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { fetchStudentResults } from "@/lib/resultApiClient";
 import { getClassConfig } from "@/lib/classConfig";
 import ClassTeacherWelcome from "@/app/components/ClassTeacherWelcome";
 import { toast } from "sonner";
 
+function resultViewHref(id, classSlug) {
+  return `/result/${id}?from=teacher&class=${classSlug}`;
+}
+
 export default function ClassResultsList({ classSlug }) {
   const config = getClassConfig(classSlug);
+  const router = useRouter();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -42,11 +48,11 @@ export default function ClassResultsList({ classSlug }) {
   });
 
   return (
-    <div className="overflow-y-auto w-full p-3 sm:p-6 lg:p-10">
+    <div className="page-content overflow-y-auto w-full">
       <div className="mb-6">
         <ClassTeacherWelcome
           classSlug={classSlug}
-          subtitle="View and search every submitted result slip for this class."
+          subtitle="View, search, and open any result slip as PDF. Click a row to view."
         />
       </div>
 
@@ -85,16 +91,36 @@ export default function ClassResultsList({ classSlug }) {
             </thead>
             <tbody>
               {filtered.map((item) => (
-                <tr key={item.id}>
+                <tr
+                  key={item.id}
+                  className="result-row-clickable"
+                  onClick={() => router.push(resultViewHref(item.id, classSlug))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      router.push(resultViewHref(item.id, classSlug));
+                    }
+                  }}
+                  tabIndex={0}
+                  role="link"
+                  aria-label={`View result slip for ${item.name || item.admissionNo}`}
+                >
                   <td>{item.name || "-"}</td>
                   <td>{item.admissionNo || "-"}</td>
                   <td>{item.term || "-"}</td>
                   <td>{item.academicSession || "-"}</td>
-                  <td>{item.summary?.avg != null ? Number(item.summary.avg).toFixed(1) : "-"}</td>
-                  <td>{item.summary?.grade ?? "-"}</td>
                   <td>
-                    <Link className="btn btn-outline btn-sm" href={`/dashboard/${classSlug}/resultdetails`}>
-                      View / Edit
+                    {item.summary?.avg != null
+                      ? Number(item.summary.avg).toFixed(1)
+                      : "-"}
+                  </td>
+                  <td>{item.summary?.grade ?? "-"}</td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <Link
+                      href={resultViewHref(item.id, classSlug)}
+                      className="btn btn-gold btn-sm"
+                    >
+                      View PDF
                     </Link>
                   </td>
                 </tr>

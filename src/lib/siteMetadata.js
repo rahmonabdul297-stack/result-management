@@ -2,8 +2,25 @@ import { getClassConfig } from "./classConfig";
 
 export const SCHOOL_NAME = "Ayodele Schools";
 export const SITE_NAME = "SST Result Management System";
+/** School crest — used for favicon, PWA icon, and social preview images */
+export const SCHOOL_LOGO_PATH = "/ayodele logo.webp";
 export const DEFAULT_DESCRIPTION =
   "Secure school result management for teachers and administrators — enter, view, and manage student result slips across JSS classes.";
+
+const schoolLogoIcons = {
+  icon: [{ url: SCHOOL_LOGO_PATH, type: "image/webp" }],
+  shortcut: SCHOOL_LOGO_PATH,
+  apple: SCHOOL_LOGO_PATH,
+};
+
+const schoolLogoOpenGraphImages = [
+  {
+    url: SCHOOL_LOGO_PATH,
+    alt: `${SCHOOL_NAME} logo`,
+    width: 512,
+    height: 512,
+  },
+];
 
 function getSiteUrl() {
   const url = process.env.NEXT_PUBLIC_SITE_URL;
@@ -28,6 +45,7 @@ export function pageMetadata({ title, description = DEFAULT_DESCRIPTION, path = 
   return {
     title,
     description,
+    icons: schoolLogoIcons,
     keywords: [
       SCHOOL_NAME,
       "school results",
@@ -43,11 +61,13 @@ export function pageMetadata({ title, description = DEFAULT_DESCRIPTION, path = 
       siteName: SCHOOL_NAME,
       locale: "en_NG",
       type: "website",
+      images: schoolLogoOpenGraphImages,
     },
     twitter: {
       card: "summary",
       title: ogTitle,
       description,
+      images: [SCHOOL_LOGO_PATH],
     },
     robots: noIndex
       ? { index: false, follow: false }
@@ -63,9 +83,21 @@ export const ADMIN_PAGE_META = {
     path: "/admin",
   },
   results: {
-    title: "All School Results",
-    description: "View, search, and manage every student result slip submitted by teachers.",
+    title: "Term Results",
+    description: "View, search, and manage term result slips submitted by teachers.",
     path: "/admin/results",
+  },
+  overallResults: {
+    title: "Overall Cumulative Results",
+    description:
+      "View annual cumulative results calculated from 1st, 2nd, and 3rd term scores across all classes.",
+    path: "/admin/overall-results",
+  },
+  checkResult: {
+    title: "Result Check Portal",
+    description:
+      "Student and parent portal to look up result slips by admission number, year, and term.",
+    path: "/checkResult",
   },
   passports: {
     title: "Student Passports",
@@ -75,7 +107,7 @@ export const ADMIN_PAGE_META = {
   teachers: {
     title: "Manage Class Teachers",
     description:
-      "Assign teacher names and staff IDs to each JSS class for personalized dashboard welcome messages.",
+      "Add classes, assign teachers, and set staff IDs and passwords for teacher dashboard login.",
     path: "/admin/teachers",
   },
   broadcast: {
@@ -85,7 +117,8 @@ export const ADMIN_PAGE_META = {
   },
   settings: {
     title: "School Settings",
-    description: "Configure school name, logo, address, and grading rules for result slips.",
+    description:
+      "Configure school name, address, motto, and register students for each class.",
     path: "/admin/settings",
   },
 };
@@ -108,16 +141,19 @@ export function classPageMetadata(classSlug, section) {
     dashboard: `/dashboard/${classSlug}`,
     results: `/dashboard/${classSlug}/results`,
     entry: `/dashboard/${classSlug}/resultdetails`,
+    cumulative: `/dashboard/${classSlug}/cumulative`,
   };
   const titles = {
     dashboard: `${cfg.label} Teacher Dashboard`,
     results: `${cfg.label} Student Results`,
     entry: `${cfg.label} Enter Student Result`,
+    cumulative: `${cfg.label} Cumulative Results`,
   };
   const descriptions = {
     dashboard: `Teacher overview and quick links for ${cfg.className} result management.`,
     results: `View and search submitted student result slips for ${cfg.className}.`,
     entry: `Record scores, remarks, and submit printable result slips for ${cfg.className} students.`,
+    cumulative: `Calculate and submit annual cumulative results from 1st, 2nd, and 3rd term for ${cfg.className}.`,
   };
 
   return pageMetadata({
@@ -136,6 +172,7 @@ export const rootMetadata = {
   },
   description: DEFAULT_DESCRIPTION,
   applicationName: SITE_NAME,
+  icons: schoolLogoIcons,
   keywords: [
     SCHOOL_NAME,
     "school result system",
@@ -148,11 +185,13 @@ export const rootMetadata = {
     siteName: SCHOOL_NAME,
     locale: "en_NG",
     type: "website",
+    images: schoolLogoOpenGraphImages,
   },
   twitter: {
     card: "summary",
     title: SITE_NAME,
     description: DEFAULT_DESCRIPTION,
+    images: [SCHOOL_LOGO_PATH],
   },
   robots: { index: true, follow: true },
 };

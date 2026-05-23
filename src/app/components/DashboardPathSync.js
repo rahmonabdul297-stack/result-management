@@ -9,7 +9,7 @@ export default function DashboardPathSync() {
   const { setUrlPath } = useToogleContext();
 
   useEffect(() => {
-    const match = pathname.match(/\/dashboard\/(class(?:one|two|three|four|five|six))/);
+    const match = pathname.match(/\/dashboard\/([^/]+)/);
     if (match) setUrlPath(match[1]);
   }, [pathname, setUrlPath]);
 

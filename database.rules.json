@@ -7,6 +7,22 @@
     "classTeachers": {
       ".read": true,
       ".write": true
+    },
+    "schoolSettings": {
+      ".read": true,
+      ".write": true
+    },
+    "classStudents": {
+      ".read": true,
+      ".write": true
+    },
+    "schoolClasses": {
+      ".read": true,
+      ".write": true
+    },
+    "classSubjects": {
+      ".read": true,
+      ".write": true
     }
   }
 }

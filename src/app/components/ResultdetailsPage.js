@@ -1,17 +1,33 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Logo from "@/app/logo";
-import Schoolname from "@/app/schoolname";
+import ResultSlipA4 from "@/app/components/ResultSlipA4";
 import ClassTeacherWelcome from "@/app/components/ClassTeacherWelcome";
 import { submitStudentResult } from "@/lib/resultApiClient";
 import { getClassConfig } from "@/lib/classConfig";
+import {
+  fetchClassSubjects,
+  subjectsToResultRows,
+} from "@/lib/classSubjectsClient";
+import { fetchClassStudents } from "@/lib/classStudentsClient";
 import { fetchClassTeacher } from "@/lib/classTeachersClient";
+import {
+  getGrade,
+  getRemark,
+  TRAIT_LETTER_GRADES,
+} from "@/lib/resultGrading";
+import {
+  BEHAVIOUR_TRAITS,
+  DEFAULT_TRAIT_GRADE,
+  PSYCHOMOTOR_TRAITS,
+} from "@/lib/resultSlipConstants";
+import {
+  DEFAULT_SCHOOL_SETTINGS,
+  fetchSchoolSettings,
+} from "@/lib/schoolSettingsClient";
 import { toast } from "sonner";
+
 const TERMS = ["1st", "2nd", "3rd"];
-const TRAITS = ["Excellent", "Very Good", "Good", "Fair", "Poor"];
-const BEHAVIOUR = ["Punctuality", "Neatness", "Attentiveness", "Obedience"];
-const PSYCHOMOTOR = ["Handwriting", "Sports", "Creativity", "Practical Skills"];
 
 const makeRow = (id) => ({
   id,
@@ -23,54 +39,40 @@ const makeRow = (id) => ({
 });
 const toNum = (v) => (v === "" ? 0 : Number(v) || 0);
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
-const getGrade = (s) =>
-  s >= 75
-    ? "A"
-    : s >= 65
-      ? "B"
-      : s >= 55
-        ? "C"
-        : s >= 45
-          ? "D"
-          : s >= 40
-            ? "E"
-            : "F";
-const getRemark = (s) =>
-  s >= 75
-    ? "Excellent"
-    : s >= 65
-      ? "Very Good"
-      : s >= 55
-        ? "Good"
-        : s >= 45
-          ? "Fair"
-          : s >= 40
-            ? "Pass"
-            : "Needs Improvement";
+
+function initTraitMap(traits) {
+  return traits.reduce((a, t) => ({ ...a, [t]: DEFAULT_TRAIT_GRADE }), {});
+}
 
 export default function ResultdetailsPage({ classSlug = "classone" }) {
   const classConfig = getClassConfig(classSlug);
   const rowIdRef = useRef(2);
   const fileRef = useRef(null);
+  const classSubjectsRef = useRef([]);
 
   const [form, setForm] = useState({
-    schoolName: "BRIGHT WISDOM INTERNATIONAL ACADEMY",
-    schoolAddress: "12 Unity Road, Kaduna, Nigeria",
-    schoolTagline: "Knowledge, Character, Excellence",
+    schoolName: DEFAULT_SCHOOL_SETTINGS.schoolName,
+    schoolAddress: DEFAULT_SCHOOL_SETTINGS.schoolAddress,
+    schoolTagline: DEFAULT_SCHOOL_SETTINGS.schoolMotto,
     term: "1st",
     selectedSession: "2025/2026",
     name: "",
     admissionNo: "",
     gender: "Female",
     className: classConfig.className,
-    discipline: "JNR. SCH. 2 DISCIPLINE",
-    house: "NASARAWA",
+    age: "",
+    discipline: classConfig.className,
+    house: "",
+    weightBegin: "",
+    heightBegin: "",
+    weightEnd: "",
+    heightEnd: "",
     classSize: "30",
     academicSession: "2025/2026",
     position: "SATISFACTORY",
     nextBegin: "",
     nextEnd: "",
-    fees: "43000",
+    fees: "",
     teacherName: "",
     houseRemark: "",
     principalRemark: "",
@@ -81,6 +83,67 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
   const [passport, setPassport] = useState("");
   const [status, setStatus] = useState("");
   const [defaultTeacherName, setDefaultTeacherName] = useState("");
+  const [registeredStudents, setRegisteredStudents] = useState([]);
+  const [configuredSubjectCount, setConfiguredSubjectCount] = useState(0);
+  const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL_SETTINGS);
+
+  useEffect(() => {
+    let active = true;
+    fetchSchoolSettings()
+      .then((settings) => {
+        if (!active) return;
+        setSchoolSettings(settings);
+        setForm((prev) => ({
+          ...prev,
+          schoolName: settings.schoolName,
+          schoolAddress: settings.schoolAddress,
+          schoolTagline: settings.schoolMotto,
+        }));
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetchClassSubjects(classSlug)
+      .then((record) => {
+        if (!active) return;
+        const subjects = record?.subjects ?? [];
+        classSubjectsRef.current = subjects;
+        setConfiguredSubjectCount(subjects.length);
+        const nextRows = subjectsToResultRows(subjects, makeRow);
+        setRows(nextRows);
+        rowIdRef.current = nextRows.length + 2;
+      })
+      .catch(() => {
+        if (active) {
+          classSubjectsRef.current = [];
+          setConfiguredSubjectCount(0);
+          setRows([makeRow("row-1")]);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [classSlug]);
+
+  useEffect(() => {
+    let active = true;
+    fetchClassStudents(classSlug)
+      .then((record) => {
+        if (!active) return;
+        setRegisteredStudents(record?.students ?? []);
+      })
+      .catch(() => {
+        if (active) setRegisteredStudents([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [classSlug]);
 
   useEffect(() => {
     let active = true;
@@ -99,12 +162,8 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
     };
   }, [classSlug]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [behaviour, setBehaviour] = useState(
-    BEHAVIOUR.reduce((a, t) => ({ ...a, [t]: "Good" }), {}),
-  );
-  const [psych, setPsych] = useState(
-    PSYCHOMOTOR.reduce((a, t) => ({ ...a, [t]: "Good" }), {}),
-  );
+  const [behaviour, setBehaviour] = useState(() => initTraitMap(BEHAVIOUR_TRAITS));
+  const [psych, setPsych] = useState(() => initTraitMap(PSYCHOMOTOR_TRAITS));
 
   const computed = useMemo(
     () =>
@@ -209,7 +268,8 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
       principalRemark: "",
       dateSigned: "",
     }));
-    setRows([makeRow("row-1")]);
+    setRows(subjectsToResultRows(classSubjectsRef.current, makeRow));
+    rowIdRef.current = (classSubjectsRef.current?.length || 0) + 2;
     setPassport("");
     if (fileRef.current) fileRef.current.value = "";
     setStatus("Form cleared.");
@@ -218,7 +278,7 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
 
   return (
     <>
-      <div className="resultdetails-page overflow-y-auto w-full p-3 sm:p-6 lg:p-10">
+      <div className="resultdetails-page page-content overflow-y-auto w-full">
         <div className="page">
           <div className="mb-6">
             <ClassTeacherWelcome
@@ -236,6 +296,34 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
 
           <div className="card">
             <div className="card-title">Student Information</div>
+            {registeredStudents.length > 0 ? (
+              <div className="form-field mb-4">
+                  <label>Select registered student</label>
+                  <select
+                    defaultValue=""
+                    onChange={(e) => {
+                      const picked = registeredStudents.find(
+                        (s) => s.id === e.target.value,
+                      );
+                      if (!picked) return;
+                      setForm((prev) => ({
+                        ...prev,
+                        name: picked.name,
+                        admissionNo: picked.admissionNo,
+                        gender: picked.gender || prev.gender,
+                      }));
+                      e.target.value = "";
+                    }}
+                  >
+                    <option value="">— Choose from class register —</option>
+                    {registeredStudents.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.name} ({student.admissionNo})
+                      </option>
+                    ))}
+                  </select>
+              </div>
+            ) : null}
             <div className="form-row four">
               <div className="form-field">
                 <label>Full Name</label>
@@ -289,10 +377,19 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
                 />
               </div>
               <div className="form-field">
-                <label>Discipline</label>
+                <label>Age</label>
+                <input
+                  value={form.age}
+                  onChange={(e) => setField("age", e.target.value)}
+                  placeholder="e.g. 6 YEARS"
+                />
+              </div>
+              <div className="form-field">
+                <label>Grade / Stream</label>
                 <input
                   value={form.discipline}
                   onChange={(e) => setField("discipline", e.target.value)}
+                  placeholder="e.g. Junior 2 CORAL"
                 />
               </div>
               <div className="form-field">
@@ -372,9 +469,9 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
                 <thead>
                   <tr>
                     <th>Subject</th>
-                    <th>CA</th>
-                    <th>Mid</th>
-                    <th>Exam</th>
+                    <th>CA 20%</th>
+                    <th>CA 20%</th>
+                    <th>Exam 60%</th>
                     <th>Total</th>
                     <th>Class Avg</th>
                     <th>Grade</th>
@@ -481,16 +578,57 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
               style={{ marginTop: 8 }}
               onClick={addRow}
             >
-              + Add Subject Row
+              + Add extra subject
             </button>
+            {configuredSubjectCount > 0 ? (
+              <p className="text-xs text-AppGray mt-2">
+                {configuredSubjectCount} subject
+                {configuredSubjectCount === 1 ? "" : "s"} loaded from admin settings for{" "}
+                {classConfig.label}.
+              </p>
+            ) : null}
+          </div>
+
+          <div className="card">
+            <div className="card-title">Physical development</div>
+            <div className="form-row four">
+              <div className="form-field">
+                <label>Weight begin (kg)</label>
+                <input
+                  value={form.weightBegin}
+                  onChange={(e) => setField("weightBegin", e.target.value)}
+                />
+              </div>
+              <div className="form-field">
+                <label>Height begin (m)</label>
+                <input
+                  value={form.heightBegin}
+                  onChange={(e) => setField("heightBegin", e.target.value)}
+                />
+              </div>
+              <div className="form-field">
+                <label>Weight end (kg)</label>
+                <input
+                  value={form.weightEnd}
+                  onChange={(e) => setField("weightEnd", e.target.value)}
+                />
+              </div>
+              <div className="form-field">
+                <label>Height end (m)</label>
+                <input
+                  value={form.heightEnd}
+                  onChange={(e) => setField("heightEnd", e.target.value)}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="card">
             <div className="card-title">Traits & Remarks</div>
             <div className="form-row two">
               <div className="form-field">
-                <label>Behaviour</label>
-                {BEHAVIOUR.map((t) => (
+                <label>Behavioural traits</label>
+                {BEHAVIOUR_TRAITS.map((t) => (
                   <div
                     key={t}
                     style={{
@@ -506,7 +644,7 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
                         setBehaviour((p) => ({ ...p, [t]: e.target.value }))
                       }
                     >
-                      {TRAITS.map((x) => (
+                      {TRAIT_LETTER_GRADES.map((x) => (
                         <option key={x}>{x}</option>
                       ))}
                     </select>
@@ -515,7 +653,7 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
               </div>
               <div className="form-field">
                 <label>Psychomotor</label>
-                {PSYCHOMOTOR.map((t) => (
+                {PSYCHOMOTOR_TRAITS.map((t) => (
                   <div
                     key={t}
                     style={{
@@ -531,7 +669,7 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
                         setPsych((p) => ({ ...p, [t]: e.target.value }))
                       }
                     >
-                      {TRAITS.map((x) => (
+                      {TRAIT_LETTER_GRADES.map((x) => (
                         <option key={x}>{x}</option>
                       ))}
                     </select>
@@ -541,7 +679,7 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
             </div>
             <div className="form-row two">
               <div className="form-field">
-                <label>House Master/Mistress Remark</label>
+                <label>Class Teacher&apos;s Comment</label>
                 <textarea
                   rows={2}
                   value={form.houseRemark}
@@ -594,184 +732,18 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
             </button>
           </div>
         </div>
-        {/* result slip print */}
-
         <section className="result-slip-print">
-          <div className="slip-head ">
-            <div className="h-[150px] w-[150px]">
-              <Logo />
-            </div>
-            <div className="slip-title">
-              <div className="text-3xl uppercase text-AppGreen py-4">
-                {" "}
-                <Schoolname />
-              </div>
-              <p>{form.schoolAddress || "-"}</p>
-              <div className="flex items-center justify-center">
-                <div className="font-bold">{"MOTTO:"}</div>
-                {form.schoolTagline || "-"}
-              </div>
-              <h2>STUDENT RESULT SLIP ({form.term} TERM)</h2>
-            </div>
-            <div className="slip-pass h-[250px]">
-              {passport ? <img src={passport} alt="passport" /> : "PHOTO"}
-            </div>
-          </div>
-
-          <div className="slip-grid">
-            <div>
-              <strong>Name:</strong> {form.name || "-"}
-            </div>
-            <div>
-              <strong>Adm No:</strong> {form.admissionNo || "-"}
-            </div>
-            <div>
-              <strong>Gender:</strong> {form.gender}
-            </div>
-            <div>
-              <strong>Class:</strong> {form.className}
-            </div>
-            <div>
-              <strong>Session:</strong> {form.academicSession}
-            </div>
-            <div>
-              <strong>House:</strong> {form.house}
-            </div>
-            <div>
-              <strong>Discipline:</strong> {form.discipline}
-            </div>
-            <div>
-              <strong>No. in Class:</strong> {form.classSize}
-            </div>
-            <div>
-              <strong>Position:</strong> {form.position}
-            </div>
-            <div>
-              <strong>Fees:</strong> N{form.fees || "0"}
-            </div>
-            <div>
-              <strong>Teacher:</strong> {form.teacherName || "-"}
-            </div>
-            <div>
-              <strong>Date Signed:</strong> {form.dateSigned || "-"}
-            </div>
-            <div>
-              <strong>Next Term Begins:</strong> {form.nextBegin || "-"}
-            </div>
-            <div>
-              <strong>Next Term Ends:</strong> {form.nextEnd || "-"}
-            </div>
-            <div>
-              <strong>Selected Session:</strong> {form.selectedSession}
-            </div>
-          </div>
-
-          <table className="slip-table">
-            <thead>
-              <tr>
-                <th>Subject</th>
-                <th>CA</th>
-                <th>Mid</th>
-                <th>Exam</th>
-                <th>Total</th>
-                <th>Class Avg</th>
-                <th>Grade</th>
-                <th>Remark</th>
-              </tr>
-            </thead>
-            <tbody>
-              {computed.filter((r) => r.subject.trim()).length ? (
-                computed
-                  .filter((r) => r.subject.trim())
-                  .map((r) => (
-                    <tr key={`print-${r.id}`}>
-                      <td>{r.subject}</td>
-                      <td>{r.ca || 0}</td>
-                      <td>{r.mid || 0}</td>
-                      <td>{r.exam || 0}</td>
-                      <td>{r.total}</td>
-                      <td>{r.classAvg || 0}</td>
-                      <td>{r.grade}</td>
-                      <td>{r.remark}</td>
-                    </tr>
-                  ))
-              ) : (
-                <tr>
-                  <td colSpan={8} style={{ textAlign: "center" }}>
-                    No subjects entered
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-
-          <div className="slip-summary">
-            <div>
-              <strong>Subjects:</strong> {summary.count}
-            </div>
-            <div>
-              <strong>Total:</strong> {summary.total}
-            </div>
-            <div>
-              <strong>Average:</strong> {summary.avg.toFixed(2)}
-            </div>
-            <div>
-              <strong>Overall Grade:</strong> {summary.grade}
-            </div>
-          </div>
-
-          <div className="slip-cols">
-            <div>
-              <h4>Behaviour</h4>
-              {BEHAVIOUR.map((t) => (
-                <p key={`b-${t}`}>
-                  {t}: {behaviour[t]}
-                </p>
-              ))}
-            </div>
-            <div>
-              <h4>Psychomotor</h4>
-              {PSYCHOMOTOR.map((t) => (
-                <p key={`p-${t}`}>
-                  {t}: {psych[t]}
-                </p>
-              ))}
-            </div>
-          </div>
-
-          <div className="slip-remarks flex justify-between mt-20">
-            <div className="flex flex-col">
-              <strong className="font-bold capitalize">
-                class teacher remark:
-              </strong>
-              <div className="py-2 border-b border-gray-300">
-                {form.houseRemark || "-"}
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <strong className="font-bold capitalize">
-                Principal remark:
-              </strong>
-              <div className="py-2 border-b border-gray-300">
-                {form.principalRemark || "-"}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-between font-sans py-10">
-            <div className="capitalize font-bold">
-              class teacher signature <br />{" "}
-              <span className="text-xs">
-                ............................................
-              </span>
-            </div>
-            <div className="capitalize font-bold">
-              principal signature <br />{" "}
-              <span className="text-xs">
-                ............................................
-              </span>
-            </div>
-          </div>
+          <ResultSlipA4
+            data={{
+              ...form,
+              rows: computed,
+              summary,
+              behaviour,
+              psych,
+              passport,
+            }}
+            school={schoolSettings}
+          />
         </section>
       </div>
       <style jsx global>{`
@@ -809,9 +781,15 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
           margin: 10mm;
         }
         @media print {
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
           html,
           body {
             background: #fff !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           body * {
             visibility: hidden;
@@ -836,102 +814,31 @@ export default function ResultdetailsPage({ classSlug = "classone" }) {
           }
           .result-slip-print {
             display: block !important;
-            width: 210mm;
-            min-height: max-content;
-            margin: 0 auto;
-            padding: 12mm;
-            background: #fff;
-            color: #111;
-            font:
-              12px "DM Sans",
-              Arial,
-              sans-serif;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 210mm !important;
+            height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            overflow: hidden !important;
           }
-          .slip-head {
-            display: grid;
-            grid-template-columns: 68px 1fr 68px;
-            gap: 10px;
-            align-items: center;
-            border-bottom: 3px solid var(--green);
-            padding-bottom: 8px;
+          .result-slip-print .a4-scale-spacer {
+            height: auto !important;
+            overflow: visible !important;
           }
-          .slip-logo,
-          .slip-pass {
-            width: 68px;
-            height: 68px;
-            border: 1px solid var(--gm);
-            display: grid;
-            place-items: center;
-            font-weight: 700;
-            color: var(--green);
+          .result-slip-print .a4-scale-inner {
+            transform: none !important;
           }
-          .slip-pass img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-          }
-          .slip-title h1 {
-            margin: 0;
-            text-align: center;
-            font-size: 15px;
-            color: var(--green);
-          }
-          .slip-title h2 {
-            margin: 4px 0 0;
-            text-align: center;
-            font-size: 12px;
-            color: var(--gold);
-          }
-          .slip-title p {
-            margin: 1px 0;
-            text-align: center;
-          }
-          .slip-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px 10px;
-            margin-top: 8px;
-          }
-          .slip-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-            font-size: 11px;
-          }
-          .slip-table th,
-          .slip-table td {
-            border: 1px solid #475569;
-            padding: 4px 5px;
-          }
-          .slip-table thead th {
-            background: var(--gl);
-            color: var(--gd);
-          }
-          .slip-summary {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-top: 8px;
-          }
-          .slip-summary div {
-            border: 1px solid #cbd5e1;
-            padding: 6px;
-            background: #f8fafc;
-          }
-          .slip-cols {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 10px;
-          }
-          .slip-cols h4 {
-            margin: 0 0 4px;
-            color: var(--green);
-          }
-          .slip-remarks {
-            margin-top: 10px;
-            border-top: 1px dashed #94a3b8;
-            padding-top: 6px;
+          .result-slip-print .a4-sheet-outer,
+          .result-slip-print .a4-sheet {
+            width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            box-shadow: none !important;
+            border: none !important;
           }
         }
       `}</style>

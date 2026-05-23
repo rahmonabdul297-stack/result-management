@@ -1,17 +1,35 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { deleteStudentResult, fetchStudentResults } from "@/lib/resultApiClient";
-import {
-  CLASS_SLUGS,
-  getClassConfig,
-  groupResultsByClass,
-} from "@/lib/classConfig";
+import { useSchoolClasses } from "@/app/context/SchoolClassesContext";
+import { getClassConfig, groupResultsByClass } from "@/lib/classConfig";
 import { toast } from "sonner";
 
+function resultViewHref(id) {
+  return `/result/${id}?from=admin`;
+}
+
 function ResultRows({ items, deletingId, onDelete }) {
+  const router = useRouter();
+
   return items.map((item) => (
-    <tr key={item.id}>
+    <tr
+      key={item.id}
+      className="result-row-clickable"
+      onClick={() => router.push(resultViewHref(item.id))}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(resultViewHref(item.id));
+        }
+      }}
+      tabIndex={0}
+      role="link"
+      aria-label={`View result slip for ${item.name || item.admissionNo}`}
+    >
       <td>{item.name || "-"}</td>
       <td>{item.admissionNo || "-"}</td>
       <td>{item.term || "-"}</td>
@@ -23,15 +41,24 @@ function ResultRows({ items, deletingId, onDelete }) {
       <td>
         {item.submittedAt ? new Date(item.submittedAt).toLocaleString() : "-"}
       </td>
-      <td>
-        <button
-          type="button"
-          className="btn btn-red btn-sm"
-          disabled={deletingId === item.id}
-          onClick={() => onDelete(item)}
-        >
-          {deletingId === item.id ? "Deleting…" : "Delete"}
-        </button>
+      <td onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={resultViewHref(item.id)}
+            className="btn btn-gold btn-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            View PDF
+          </Link>
+          <button
+            type="button"
+            className="btn btn-red btn-sm"
+            disabled={deletingId === item.id}
+            onClick={() => onDelete(item)}
+          >
+            {deletingId === item.id ? "Deleting…" : "Delete"}
+          </button>
+        </div>
       </td>
     </tr>
   ));
@@ -42,16 +69,27 @@ export default function AdminResultsTable({
   description,
   initialClassFilter = "all",
 }) {
+  const { classConfig, classSlugs } = useSchoolClasses();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [activeClass, setActiveClass] = useState(
-    initialClassFilter && CLASS_SLUGS.includes(initialClassFilter)
+    initialClassFilter && (initialClassFilter === "all" || classSlugs.includes(initialClassFilter))
       ? initialClassFilter
-      : "all"
+      : "all",
   );
   const [deletingId, setDeletingId] = useState(null);
+
+  useEffect(() => {
+    if (
+      initialClassFilter &&
+      initialClassFilter !== "all" &&
+      classSlugs.includes(initialClassFilter)
+    ) {
+      setActiveClass(initialClassFilter);
+    }
+  }, [initialClassFilter, classSlugs]);
 
   const loadResults = useCallback(async () => {
     try {
@@ -75,7 +113,7 @@ export default function AdminResultsTable({
   const handleDelete = async (item) => {
     const label = item.name || item.admissionNo || "this result";
     const confirmed = window.confirm(
-      `Delete result for ${label}? This cannot be undone.`
+      `Delete result for ${label}? This cannot be undone.`,
     );
     if (!confirmed) return;
 
@@ -99,22 +137,27 @@ export default function AdminResultsTable({
         (item.name || "").toLowerCase().includes(q) ||
         (item.admissionNo || "").toLowerCase().includes(q) ||
         (item.className || "").toLowerCase().includes(q) ||
-        (getClassConfig(item.classSlug)?.label || "").toLowerCase().includes(q)
+        (getClassConfig(item.classSlug, classConfig)?.label || "")
+          .toLowerCase()
+          .includes(q),
     );
-  }, [results, search]);
+  }, [results, search, classConfig]);
 
-  const grouped = useMemo(() => groupResultsByClass(filtered), [filtered]);
+  const grouped = useMemo(
+    () => groupResultsByClass(filtered, classConfig),
+    [filtered, classConfig],
+  );
 
   const classTabs = useMemo(() => {
     const counts = Object.fromEntries(
-      groupResultsByClass(results).map((g) => [g.slug, g.items.length])
+      groupResultsByClass(results, classConfig).map((g) => [g.slug, g.items.length]),
     );
-    return CLASS_SLUGS.map((slug) => ({
+    return classSlugs.map((slug) => ({
       slug,
-      label: getClassConfig(slug).label,
+      label: getClassConfig(slug, classConfig).label,
       count: counts[slug] ?? 0,
     }));
-  }, [results]);
+  }, [results, classSlugs, classConfig]);
 
   const visibleGroups = useMemo(() => {
     if (activeClass === "all") return grouped;
@@ -128,6 +171,9 @@ export default function AdminResultsTable({
         {description ? (
           <p className="text-sm text-AppGray mt-1">{description}</p>
         ) : null}
+        <p className="text-xs text-AppGray mt-2">
+          Click any row or &quot;View PDF&quot; to open the printable result slip.
+        </p>
       </div>
 
       <div className="card mb-4">

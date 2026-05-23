@@ -2,11 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { fetchStudentResults } from "@/lib/resultApiClient";
+import { isCumulativeResult } from "@/lib/cumulativeResults";
 import { getClassResultCounts } from "@/lib/classConfig";
+import { useSchoolClasses } from "@/app/context/SchoolClassesContext";
 import { toast } from "sonner";
 import Link from "next/link";
 
 export default function AdminOverview() {
+  const { classConfig } = useSchoolClasses();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,10 +28,19 @@ export default function AdminOverview() {
     load();
   }, []);
 
-  const classCounts = useMemo(() => getClassResultCounts(results), [results]);
+  const termResults = useMemo(() => results.filter((r) => !isCumulativeResult(r)), [results]);
+  const cumulativeResults = useMemo(
+    () => results.filter((r) => isCumulativeResult(r)),
+    [results],
+  );
+
+  const classCounts = useMemo(
+    () => getClassResultCounts(termResults, classConfig),
+    [termResults, classConfig],
+  );
 
   const classCount = classCounts.filter((c) => c.count > 0).length;
-  const avgScores = results
+  const avgScores = termResults
     .map((r) => r.summary?.avg)
     .filter((v) => typeof v === "number");
   const overallAvg = avgScores.length
@@ -42,10 +54,14 @@ export default function AdminOverview() {
         <p className="text-sm text-AppGray mt-1">School-wide summary of submitted result slips.</p>
       </div>
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+      <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
         <div className="stat-card">
-          <div className="stat-label">Total Submissions</div>
-          <div className="stat-value">{loading ? "…" : results.length}</div>
+          <div className="stat-label">Term Submissions</div>
+          <div className="stat-value">{loading ? "…" : termResults.length}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Cumulative Results</div>
+          <div className="stat-value">{loading ? "…" : cumulativeResults.length}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Classes Active</div>
@@ -112,13 +128,19 @@ export default function AdminOverview() {
         <h3 className="font-semibold mb-3">Quick actions</h3>
         <div className="flex flex-wrap gap-3">
           <Link href="/admin/results" className="btn btn-green">
-            View all results
+            Term results
+          </Link>
+          <Link href="/admin/overall-results" className="btn btn-outline">
+            Overall results
           </Link>
           <Link href="/admin/teachers" className="btn btn-outline">
             Manage class teachers
           </Link>
           <Link href="/admin/settings" className="btn btn-outline">
             School settings
+          </Link>
+          <Link href="/checkResult" className="btn btn-outline">
+            Result check portal
           </Link>
         </div>
       </div>

@@ -5,7 +5,17 @@ import { useState } from "react";
 import { LuEye, LuEyeClosed } from "react-icons/lu";
 import Schoolname from "../schoolname";
 import Logo from "../logo";
+import { fetchAllClassTeachers } from "@/lib/classTeachersClient";
 import { toast } from "sonner";
+
+const LEGACY_TEACHERS = {
+  TCH001: { pass: "CT12026", route: "/dashboard/classone" },
+  TCH002: { pass: "CT22026", route: "/dashboard/classtwo" },
+  TCH003: { pass: "CT32026", route: "/dashboard/classthree" },
+  TCH004: { pass: "CT42026", route: "/dashboard/classfour" },
+  TCH005: { pass: "CT52026", route: "/dashboard/classfive" },
+  TCH006: { pass: "CT62026", route: "/dashboard/classsix" },
+};
 
 export default function AuthPageClient() {
   const [logTyp, setLogTyp] = useState([
@@ -21,28 +31,43 @@ export default function AuthPageClient() {
   const [AdminPass, setAdminPass] = useState("");
   const [AdminID, setAdminID] = useState("");
   const [seletTyp, setseletTyp] = useState(1);
+  const [loggingIn, setLoggingIn] = useState(false);
 
-  const handleTchLogin = () => {
+  const handleTchLogin = async () => {
     if (!tchID || !tchPass) {
       setErr("Fields are required!");
       return;
     }
-    const teachers = {
-      TCH001: { pass: "CT12026", route: "/dashboard/classone" },
-      TCH002: { pass: "CT22026", route: "/dashboard/classtwo" },
-      TCH003: { pass: "CT32026", route: "/dashboard/classthree" },
-      TCH004: { pass: "CT42026", route: "/dashboard/classfour" },
-      TCH005: { pass: "CT52026", route: "/dashboard/classfive" },
-      TCH006: { pass: "CT62026", route: "/dashboard/classsix" },
-    };
-    const record = teachers[tchID];
-    if (record && record.pass === tchPass) {
+
+    const staffId = tchID.trim().toUpperCase();
+    const legacy = LEGACY_TEACHERS[staffId];
+    if (legacy && legacy.pass === tchPass) {
       setErr("");
-      route.push(record.route);
-    } else {
+      route.push(legacy.route);
+      return;
+    }
+
+    try {
+      setLoggingIn(true);
+      const teachers = await fetchAllClassTeachers();
+      for (const [slug, record] of Object.entries(teachers)) {
+        const id = String(record.staffId ?? "").trim().toUpperCase();
+        const pass = String(record.loginPassword ?? "").trim();
+        if (id === staffId && pass && pass === tchPass) {
+          setErr("");
+          route.push(`/dashboard/${slug}`);
+          return;
+        }
+      }
       const msg = "Invalid credentials. Please try again.";
       setErr(msg);
       toast.error(msg);
+    } catch {
+      const msg = "Could not verify login. Try again.";
+      setErr(msg);
+      toast.error(msg);
+    } finally {
+      setLoggingIn(false);
     }
   };
 
@@ -64,8 +89,8 @@ export default function AuthPageClient() {
   };
 
   return (
-    <div className="h-screen w-full authBg">
-      <div className="login-card">
+    <div className="auth-page min-h-screen w-full authBg px-4 py-8 sm:py-12">
+      <div className="login-card mx-auto w-full max-w-[400px]">
         <div className="flex flex-col items-center py-3">
           <div className="h-24 w-[100px]">
             <Logo />
@@ -109,7 +134,7 @@ export default function AuthPageClient() {
               type={showpass ? "text" : "password"}
               id="l-pass"
               placeholder="Enter your password"
-              className="w-[80%]"
+              className="flex-1 min-w-0"
               onChange={(e) =>
                 seletTyp === 1
                   ? setTchPass(e.target.value)
@@ -123,9 +148,10 @@ export default function AuthPageClient() {
         </div>
         <button
           className="btn-primary"
+          disabled={loggingIn}
           onClick={seletTyp === 1 ? handleTchLogin : handleAdminLogin}
         >
-          Sign In
+          {loggingIn ? "Signing in…" : "Sign In"}
         </button>
         <p className="text-red-500 text-center" id="l-err">
           {err}

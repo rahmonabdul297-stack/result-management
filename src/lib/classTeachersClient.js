@@ -1,5 +1,6 @@
 import { get, ref, set } from "firebase/database";
-import { CLASS_SLUGS, CLASS_CONFIG, getClassConfig } from "./classConfig";
+import { DEFAULT_CLASS_CONFIG, getClassConfig } from "./classConfig";
+import { fetchSchoolClasses } from "./schoolClassesClient";
 import { CLASS_TEACHERS_PATH, getDb } from "./firebase";
 
 /** Default staff IDs aligned with teacher login credentials. */
@@ -20,8 +21,8 @@ function getFirebaseErrorMessage(error) {
   return error?.message || "Failed to load class teacher settings.";
 }
 
-function emptyTeacherRecord(classSlug) {
-  const cfg = getClassConfig(classSlug);
+function emptyTeacherRecord(classSlug, classConfig = DEFAULT_CLASS_CONFIG) {
+  const cfg = getClassConfig(classSlug, classConfig);
   return {
     classSlug,
     className: cfg.className,
@@ -35,19 +36,21 @@ function emptyTeacherRecord(classSlug) {
 /** @returns {Promise<Record<string, object>>} */
 export async function fetchAllClassTeachers() {
   try {
+    const classConfig = await fetchSchoolClasses();
+    const slugs = Object.keys(classConfig);
     const db = getDb();
     const snapshot = await get(ref(db, CLASS_TEACHERS_PATH));
     const stored = snapshot.exists() ? snapshot.val() : {};
 
     const merged = {};
-    for (const slug of CLASS_SLUGS) {
+    for (const slug of slugs) {
       const saved = stored[slug];
       merged[slug] = {
-        ...emptyTeacherRecord(slug),
+        ...emptyTeacherRecord(slug, classConfig),
         ...(saved || {}),
         classSlug: slug,
-        className: CLASS_CONFIG[slug].className,
-        label: CLASS_CONFIG[slug].label,
+        className: classConfig[slug].className,
+        label: classConfig[slug].label,
       };
     }
     return merged;
@@ -67,7 +70,8 @@ export async function fetchClassTeacher(classSlug) {
  * @param {{ teacherName?: string; staffId?: string }} payload
  */
 export async function saveClassTeacher(classSlug, payload) {
-  if (!CLASS_CONFIG[classSlug]) {
+  const classConfig = await fetchSchoolClasses();
+  if (!classConfig[classSlug]) {
     throw new Error("Invalid class.");
   }
 
@@ -78,13 +82,18 @@ export async function saveClassTeacher(classSlug, payload) {
 
   try {
     const db = getDb();
-    const cfg = getClassConfig(classSlug);
+    const cfg = getClassConfig(classSlug, classConfig);
+    const existing = await fetchClassTeacher(classSlug);
+    const loginPassword = String(
+      payload.loginPassword ?? existing?.loginPassword ?? "",
+    ).trim();
     const record = {
       classSlug,
       className: cfg.className,
       label: cfg.label,
       teacherName,
       staffId: String(payload.staffId ?? DEFAULT_STAFF_IDS[classSlug] ?? "").trim(),
+      ...(loginPassword ? { loginPassword } : {}),
       updatedAt: new Date().toISOString(),
     };
     await set(ref(db, `${CLASS_TEACHERS_PATH}/${classSlug}`), record);
