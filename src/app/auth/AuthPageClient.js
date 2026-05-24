@@ -52,7 +52,9 @@ export default function AuthPageClient() {
       setLoggingIn(true);
       const teachers = await fetchAllClassTeachers();
       for (const [slug, record] of Object.entries(teachers)) {
-        const id = String(record.staffId ?? "").trim().toUpperCase();
+        const id = String(record.staffId ?? "")
+          .trim()
+          .toUpperCase();
         const pass = String(record.loginPassword ?? "").trim();
         if (id === staffId && pass && pass === tchPass) {
           setErr("");
@@ -99,7 +101,9 @@ export default function AuthPageClient() {
           <div className="text-black">
             <Schoolname />
           </div>
-          <div className="text-xs text-AppGray text-center">{DEFAULT_SCHOOL_SETTINGS.schoolAddress}</div>
+          <div className="text-xs text-AppGray text-center">
+            {DEFAULT_SCHOOL_SETTINGS.schoolAddress}
+          </div>
         </div>
         <div className="login-tabs">
           {logTyp.map((item) => (
@@ -148,7 +152,7 @@ export default function AuthPageClient() {
           </div>
         </div>
         <button
-          className="btn-primary"
+          className=" result-check-btn"
           disabled={loggingIn}
           onClick={seletTyp === 1 ? handleTchLogin : handleAdminLogin}
         >
