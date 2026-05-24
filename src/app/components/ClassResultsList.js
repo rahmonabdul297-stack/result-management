@@ -9,10 +9,7 @@ import ClassTeacherWelcome from "@/app/components/ClassTeacherWelcome";
 import { toast } from "sonner";
 
 function resultViewHref(id, classSlug) {
-  return (
-    `https://result-management-kappa.vercel.app/result/${id}?from=teacher&class=${classSlug}` ||
-    `/result/${id}?from=teacher&class=${classSlug}`
-  );
+  return `/result/${id}?from=teacher&class=${classSlug}`;
 }
 
 export default function ClassResultsList({ classSlug }) {

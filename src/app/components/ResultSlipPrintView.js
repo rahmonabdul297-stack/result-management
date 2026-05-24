@@ -55,7 +55,7 @@ export default function ResultSlipPrintView({
         </button>
       </div>
       <p className="result-view-mobile-hint no-print">
-        Pinch or scroll to view the full slip. Use Print to save a full A4 PDF.
+        Scroll to the top to see the school logo and details. Use Print to save a full A4 PDF.
       </p>
 
       <div className="result-slip-print-visible">

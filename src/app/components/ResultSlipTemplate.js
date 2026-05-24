@@ -5,6 +5,7 @@ import {
   BEHAVIOUR_TRAITS,
   PSYCHOMOTOR_TRAITS,
 } from "@/lib/resultSlipConstants";
+import { DEFAULT_SCHOOL_SETTINGS } from "@/lib/schoolSettingsClient";
 import {
   GRADE_KEY,
   TRAIT_GRADE_KEY,
@@ -32,11 +33,20 @@ export default function ResultSlipTemplate({
   className = "",
   omitSchoolHeader = false,
 }) {
-  const schoolName = data.schoolName || school.schoolName || "";
-  const schoolAddress = data.schoolAddress || school.schoolAddress || "";
-  const schoolMotto = data.schoolTagline || data.schoolMotto || school.schoolMotto || "";
-  const schoolEmail = school.schoolEmail || data.schoolEmail || "";
-  const schoolWebsite = school.schoolWebsite || data.schoolWebsite || "";
+  const schoolName =
+    String(data.schoolName ?? school.schoolName ?? DEFAULT_SCHOOL_SETTINGS.schoolName).trim();
+  const schoolAddress = String(
+    data.schoolAddress ?? school.schoolAddress ?? DEFAULT_SCHOOL_SETTINGS.schoolAddress,
+  ).trim();
+  const schoolMotto = String(
+    data.schoolTagline ??
+      data.schoolMotto ??
+      school.schoolTagline ??
+      school.schoolMotto ??
+      DEFAULT_SCHOOL_SETTINGS.schoolMotto,
+  ).trim();
+  const schoolEmail = String(school.schoolEmail ?? data.schoolEmail ?? "").trim();
+  const schoolWebsite = String(school.schoolWebsite ?? data.schoolWebsite ?? "").trim();
 
   const rows = (Array.isArray(data.rows) ? data.rows : []).filter((r) =>
     String(r?.subject ?? "").trim(),

@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import ResultSlipA4 from "@/app/components/ResultSlipA4";
 import { submitStudentResult } from "@/lib/resultApiClient";
+import {
+  DEFAULT_SCHOOL_SETTINGS,
+  fetchSchoolSettings,
+} from "@/lib/schoolSettingsClient";
 import { toast } from "sonner";
 import { IoIosContact } from "react-icons/io";
 const TERMS = ["1st", "2nd", "3rd"];
@@ -79,6 +84,19 @@ export default function ResultSlip() {
     PSYCHOMOTOR.reduce((a, t) => ({ ...a, [t]: "Good" }), {}),
   );
   const fileRef = useRef(null);
+  const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL_SETTINGS);
+
+  useEffect(() => {
+    let active = true;
+    fetchSchoolSettings()
+      .then((settings) => {
+        if (active) setSchoolSettings(settings);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const computed = useMemo(
     () =>
@@ -613,84 +631,22 @@ export default function ResultSlip() {
                 Print Slip
               </button>
             </div>
-            <div className="slip-head">
-              <div className="slip-logo">BW</div>
-              <div className="slip-title">
-                <h2>STUDENT RESULT SLIP ({form.term} TERM)</h2>
-              </div>
-              <div className="slip-pass">
-                {passport ? <img src={passport} alt="passport" /> : <IoIosContact />}
-              </div>
+            <div className="result-slip-print-visible">
+              <ResultSlipA4
+                data={{
+                  ...form,
+                  rows: computed,
+                  summary,
+                  behaviour,
+                  psych,
+                  passport,
+                  schoolName: schoolSettings.schoolName,
+                  schoolAddress: schoolSettings.schoolAddress,
+                  schoolTagline: schoolSettings.schoolMotto,
+                }}
+                school={schoolSettings}
+              />
             </div>
-
-            <div className="slip-grid">
-              <div>
-                <strong>Name:</strong> {form.name || "-"}
-              </div>
-              <div>
-                <strong>Adm No:</strong> {form.admissionNo || "-"}
-              </div>
-              <div>
-                <strong>Gender:</strong> {form.gender}
-              </div>
-              <div>
-                <strong>Class:</strong> {form.className}
-              </div>
-              <div>
-                <strong>Session:</strong> {form.academicSession}
-              </div>
-              <div>
-                <strong>House:</strong> {form.house}
-              </div>
-              <div>
-                <strong>Discipline:</strong> {form.discipline}
-              </div>
-              <div>
-                <strong>No. in Class:</strong> {form.classSize}
-              </div>
-              <div>
-                <strong>Position:</strong> {form.position}
-              </div>
-            </div>
-
-            <table className="slip-table">
-              <thead>
-                <tr>
-                  <th>Subject</th>
-                  <th>CA</th>
-                  <th>Mid</th>
-                  <th>Exam</th>
-                  <th>Total</th>
-                  <th>Class Avg</th>
-                  <th>Grade</th>
-                  <th>Remark</th>
-                </tr>
-              </thead>
-              <tbody>
-                {computed.filter((r) => r.subject.trim()).length ? (
-                  computed
-                    .filter((r) => r.subject.trim())
-                    .map((r) => (
-                      <tr key={`preview-${r.id}`}>
-                        <td>{r.subject}</td>
-                        <td>{r.ca || 0}</td>
-                        <td>{r.mid || 0}</td>
-                        <td>{r.exam || 0}</td>
-                        <td>{r.total}</td>
-                        <td>{r.classAvg || 0}</td>
-                        <td>{r.grade}</td>
-                        <td>{r.remark}</td>
-                      </tr>
-                    ))
-                ) : (
-                  <tr>
-                    <td colSpan={8} style={{ textAlign: "center" }}>
-                      No subjects entered
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
           </section>
         )}
       </div>

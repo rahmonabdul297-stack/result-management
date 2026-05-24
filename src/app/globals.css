@@ -1596,7 +1596,7 @@ body.is-admin .sidebar-label {
 .a4-scale-spacer {
   width: 100%;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 .a4-scale-inner {
   width: fit-content;
@@ -1604,7 +1604,13 @@ body.is-admin .sidebar-label {
   margin-left: auto;
   margin-right: auto;
 }
+.a4-scale-viewport[data-scaled="true"] .a4-scale-spacer {
+  overflow: visible;
+}
 .a4-scale-viewport[data-scaled="true"] .a4-scale-inner {
+  position: absolute;
+  top: 0;
+  left: 50%;
   will-change: transform;
 }
 .result-slip-print-visible {
@@ -1663,6 +1669,9 @@ body.is-admin .sidebar-label {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+.a4-school-logo > div {
+  position: relative;
 }
 .a4-school-name {
   font-family: Georgia, "Times New Roman", serif;
@@ -1894,6 +1903,10 @@ body.is-admin .sidebar-label {
   .a4-scale-spacer {
     height: auto !important;
     overflow: visible !important;
+  }
+  .a4-scale-viewport[data-scaled="true"] .a4-scale-inner {
+    position: static !important;
+    left: auto !important;
   }
   .a4-scale-inner {
     transform: none !important;
@@ -2596,8 +2609,14 @@ body.is-admin .sidebar-label {
   }
 
   .a4-school-logo {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .a4-school-text {
+    min-width: 0;
   }
 
   .a4-school-name {

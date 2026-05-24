@@ -31,7 +31,8 @@ export default function A4ResponsiveScaler({ children, className = "" }) {
   useEffect(() => {
     updateScale();
     const el = innerRef.current;
-    const ro = el && typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateScale) : null;
+    const ro =
+      el && typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateScale) : null;
     if (el && ro) ro.observe(el);
     window.addEventListener("resize", updateScale);
     window.addEventListener("orientationchange", updateScale);
@@ -60,7 +61,7 @@ export default function A4ResponsiveScaler({ children, className = "" }) {
           style={
             isScaled
               ? {
-                  transform: `scale(${scale})`,
+                  transform: `translateX(-50%) scale(${scale})`,
                   transformOrigin: "top center",
                 }
               : undefined

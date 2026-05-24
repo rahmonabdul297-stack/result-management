@@ -1,18 +1,22 @@
 "use client";
 
 import Logo from "@/app/logo";
+import { DEFAULT_SCHOOL_SETTINGS } from "@/lib/schoolSettingsClient";
 
 /**
  * School branding block displayed above the result slip on the A4 sheet.
  */
 export default function SchoolDetailsHeader({ school = {} }) {
-  const schoolName = school.schoolName || "";
-  const schoolAddress = school.schoolAddress || "";
-  const schoolMotto = school.schoolMotto || school.schoolTagline || "";
-  const schoolEmail = school.schoolEmail || "";
-  const schoolWebsite = school.schoolWebsite || "";
-
-  if (!schoolName && !schoolAddress) return null;
+  const schoolName =
+    school.schoolName?.trim() || DEFAULT_SCHOOL_SETTINGS.schoolName;
+  const schoolAddress =
+    school.schoolAddress?.trim() || DEFAULT_SCHOOL_SETTINGS.schoolAddress;
+  const schoolMotto =
+    school.schoolMotto?.trim() ||
+    school.schoolTagline?.trim() ||
+    DEFAULT_SCHOOL_SETTINGS.schoolMotto;
+  const schoolEmail = school.schoolEmail?.trim() || "";
+  const schoolWebsite = school.schoolWebsite?.trim() || "";
 
   return (
     <header className="a4-school-details" aria-label="School details">
