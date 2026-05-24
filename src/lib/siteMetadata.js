@@ -3,7 +3,8 @@ import { getClassConfig } from "./classConfig";
 export const SCHOOL_NAME = "Ayodele Schools";
 export const SITE_NAME = "SST Result Management System";
 /** School crest — used for favicon, PWA icon, and social preview images */
-export const SCHOOL_LOGO_PATH = "/ayodele logo.webp";
+/** Public file copied from original `ayodele logo.webp` (no spaces — reliable in URLs & Next/Image). */
+export const SCHOOL_LOGO_PATH = "/ayodele-logo1.webp";
 export const DEFAULT_DESCRIPTION =
   "Secure school result management for teachers and administrators — enter, view, and manage student result slips across JSS classes.";
 

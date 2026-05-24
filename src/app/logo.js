@@ -1,19 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import { SCHOOL_LOGO_PATH } from "@/lib/siteMetadata";
 
-const LOGO_FALLBACK = "/ayodele logo.webp";
-
 const Logo = ({ size, className = "" }) => {
-  const [src, setSrc] = useState(SCHOOL_LOGO_PATH);
-
-  const handleError = () => {
-    if (src !== LOGO_FALLBACK) setSrc(LOGO_FALLBACK);
-  };
-
-  const handleLoad = () => {
+  const notifyResize = () => {
     window.dispatchEvent(new Event("resize"));
   };
 
@@ -24,13 +15,12 @@ const Logo = ({ size, className = "" }) => {
         style={{ width: size, height: size }}
       >
         <Image
-          src={src}
+          src={SCHOOL_LOGO_PATH}
           alt="Ayodele Schools logo"
           width={size}
           height={size}
           className="h-full w-full rounded-full object-contain"
-          onLoad={handleLoad}
-          onError={handleError}
+          onLoad={notifyResize}
         />
       </div>
     );
@@ -41,13 +31,12 @@ const Logo = ({ size, className = "" }) => {
       className={`relative h-full w-full min-h-[32px] min-w-[32px] overflow-hidden rounded-full ${className}`.trim()}
     >
       <Image
-        src={src}
+        src={SCHOOL_LOGO_PATH}
         alt="Ayodele Schools logo"
         fill
         sizes="84px"
         className="rounded-full object-contain"
-        onLoad={handleLoad}
-        onError={handleError}
+        onLoad={notifyResize}
       />
     </div>
   );
