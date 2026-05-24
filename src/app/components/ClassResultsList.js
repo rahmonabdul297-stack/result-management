@@ -9,7 +9,10 @@ import ClassTeacherWelcome from "@/app/components/ClassTeacherWelcome";
 import { toast } from "sonner";
 
 function resultViewHref(id, classSlug) {
-  return `/result/${id}?from=teacher&class=${classSlug}`;
+  return (
+    // `https://result-management-kappa.vercel.app/result/${id}?from=teacher&class=${classSlug}` ||
+    `/result/${id}?from=teacher&class=${classSlug}`
+  );
 }
 
 export default function ClassResultsList({ classSlug }) {
@@ -94,7 +97,9 @@ export default function ClassResultsList({ classSlug }) {
                 <tr
                   key={item.id}
                   className="result-row-clickable"
-                  onClick={() => router.push(resultViewHref(item.id, classSlug))}
+                  onClick={() =>
+                    router.push(resultViewHref(item.id, classSlug))
+                  }
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
