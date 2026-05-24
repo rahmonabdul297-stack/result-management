@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 function resultViewHref(id, classSlug) {
   return (
-    // `https://result-management-kappa.vercel.app/result/${id}?from=teacher&class=${classSlug}` ||
+    `https://result-management-kappa.vercel.app/result/${id}?from=teacher&class=${classSlug}` ||
     `/result/${id}?from=teacher&class=${classSlug}`
   );
 }
